@@ -9,6 +9,15 @@ import (
 )
 
 func main() {
+	// graphql.Fields map[string]*Field
+	var rootFields = graphql.Fields{
+		"users": &graphql.Field{
+			Type: graphql.String,
+			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				return "paijo", nil
+			},
+		},
+	}
 	// type ObjectConfig struct {
 	// Name        string      `json:"name"`
 	// Interfaces  interface{} `json:"interfaces"`
@@ -17,8 +26,10 @@ func main() {
 	// Description string      `json:"description"`
 	// }
 	var rootObjectConfig = graphql.ObjectConfig{
-		Name
+		Name:   "RootQuery",
+		Fields: rootFields,
 	}
+
 	var rootQueryType = graphql.NewObject(rootObjectConfig)
 	// type SchemaConfig struct {
 	// Query        *Object
@@ -33,12 +44,12 @@ func main() {
 	// define your schema
 	schema, err := graphql.NewSchema(schemaConfig)
 	if err != nil {
-		log.Fatalf("Erro create schema")
+		log.Fatalf("Erro create schema, error: %v", err)
 	}
 
 	// define your graphql handler using graphql-go handler
 	gqlHandler := handler.New(&handler.Config{
-		Schema:   schema,
+		Schema:   &schema,
 		Pretty:   true,
 		GraphiQL: true,
 	})
