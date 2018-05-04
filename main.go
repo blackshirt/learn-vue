@@ -1,23 +1,30 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"
+
+	"./app"
 )
 
 func main() {
-	// graphql.Fields map[string]*Field
-	var rootFields = graphql.Fields{
-		"users": &graphql.Field{
-			Type: graphql.String,
-			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				return "paijo", nil
-			},
-		},
+	db, err := sql.Open("sqlite3", "./test.db")
+	if err != nil {
+		panic(err)
 	}
+	// graphql.Fields map[string]*Field
+	// var rootFields = graphql.Fields{
+	//	"users": &graphql.Field{
+	//		Type: graphql.String,
+	//		Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+	//			return "paijo", nil
+	//		},
+	//	},
+	// }
 	// type ObjectConfig struct {
 	// Name        string      `json:"name"`
 	// Interfaces  interface{} `json:"interfaces"`
@@ -25,12 +32,12 @@ func main() {
 	// IsTypeOf    IsTypeOfFn  `json:"isTypeOf"`
 	// Description string      `json:"description"`
 	// }
-	var rootObjectConfig = graphql.ObjectConfig{
-		Name:   "RootQuery",
-		Fields: rootFields,
-	}
+	// var rootObjectConfig = graphql.ObjectConfig{
+	//	Name:   "RootQuery",
+	//	Fields: rootFields,
+	// }
 
-	var rootQueryType = graphql.NewObject(rootObjectConfig)
+	// var rootQueryType = graphql.NewObject(rootObjectConfig)
 	// type SchemaConfig struct {
 	// Query        *Object
 	// Mutation     *Object
@@ -39,7 +46,7 @@ func main() {
 	// Directives   []*Directive
 	//}
 	var schemaConfig = graphql.SchemaConfig{
-		Query: rootQueryType,
+		Query: types.RootQuery,
 	}
 	// define your schema
 	schema, err := graphql.NewSchema(schemaConfig)
