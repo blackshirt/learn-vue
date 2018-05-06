@@ -1,12 +1,10 @@
 package types
 
 import (
-	"database/sql"
-
 	"github.com/graphql-go/graphql"
 )
 
-var db *sql.DB
+// var db *sql.DB
 
 type User struct {
 	ID        int    `json: "id"`
@@ -14,6 +12,10 @@ type User struct {
 	Firstname string `json: "firstname"`
 	Lastname  string `json: "lastname"`
 }
+
+var db, _ = NewDB("sqlite3", "./test.db")
+
+var resolver = NewSQLHandler(db)
 
 var UserTypeObject = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "User",
@@ -76,16 +78,9 @@ var RootQuery = graphql.NewObject(graphql.ObjectConfig{
 			},
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 				id, _ := params.Args["id"].(int)
-				user := &User{}
-				// query db and scan the result
-				err := db.QueryRow("select id, username, firstname, lastname from user where id=?", id).Scan(
-					user.ID,
-					user.Username,
-					user.Firstname,
-					user.Lastname)
-				// check error
+				user, err := resolver.GetByID(id)
 				if err != nil {
-					panic(err)
+					return nil, err
 				}
 				return user, nil
 			},
@@ -96,19 +91,9 @@ var RootQuery = graphql.NewObject(graphql.ObjectConfig{
 			Type:        graphql.NewList(UserTypeObject),
 			Description: "List of user",
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				var users []*User
-				rows, err := db.Query("select * from user")
-				// check error
+				users, err := resolver.Users()
 				if err != nil {
-					panic(err)
-				}
-				for rows.Next() {
-					user := new(User)
-					err := rows.Scan(&user.ID, &user.Username, &user.Firstname, &user.Lastname)
-					if err != nil {
-						panic(err)
-					}
-					users = append(users, user)
+					return nil, err
 				}
 				return users, nil
 			},

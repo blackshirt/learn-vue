@@ -1,21 +1,22 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"
 
-	"./app"
+	"./app/types"
 )
 
+// var db *sql.DB
+
 func main() {
-	db, err := sql.Open("sqlite3", "./test.db")
-	if err != nil {
-		panic(err)
-	}
+	//db, err := sql.Open("sqlite3", "./test.db")
+	//if err != nil {
+	//	panic(err)
+	//}
 	// graphql.Fields map[string]*Field
 	// var rootFields = graphql.Fields{
 	//	"users": &graphql.Field{
@@ -63,5 +64,5 @@ func main() {
 
 	// adapts and serve standard http handler
 	http.Handle("/gqlhandler", gqlHandler)
-	http.ListenAndServe(":5000", nil)
+	http.ListenAndServe(":8000", nil)
 }
