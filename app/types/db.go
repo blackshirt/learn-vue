@@ -73,3 +73,22 @@ func (sqh *SQLResolver) Users() ([]*User, error) {
 	}
 	return users, nil
 }
+
+func (sqh *SQLResolver) CreateUser(user *User) error {
+	// var id int64
+	query := `insert into user(username, firstname, lastname) values(?,?,?)`
+	stmt, err := sqh.DB.Prepare(query)
+	if err != nil {
+		log.Fatalf("error in stmt of create user:", err)
+	}
+	_, er := stmt.Exec(user.Username, user.Firstname, user.Lastname)
+	if er != nil {
+		log.Fatalf("Error in Exec:", err)
+	}
+	//id, err := result.LastInsertId()
+	//if err != nil {
+	//	log.Fatalf("Error in result.LastinsertId")
+	//}
+
+	return nil
+}

@@ -64,6 +64,7 @@ var UserTypeObject = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+// Query type object
 var RootQuery = graphql.NewObject(graphql.ObjectConfig{
 	Name: "RootQuery",
 	Fields: graphql.Fields{
@@ -98,6 +99,42 @@ var RootQuery = graphql.NewObject(graphql.ObjectConfig{
 					return nil, err
 				}
 				return users, nil
+			},
+		},
+	},
+})
+
+// Mutations type object
+var MutationsType = graphql.NewObject(graphql.ObjectConfig{
+	Name: "RootMutations",
+	Fields: graphql.Fields{
+		"createUserMutation": &graphql.Field{
+			Type:        UserTypeObject,
+			Description: "create user mutation",
+			Args: graphql.FieldConfigArgument{
+				"username": &graphql.ArgumentConfig{
+					Type:        graphql.NewNonNull(graphql.String),
+					Description: "username input to create user mutation",
+				},
+				"firstname": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+				"lastname": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+			},
+			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				user := &User{
+					Username:  params.Args["username"].(string),
+					Firstname: params.Args["firstname"].(string),
+					Lastname:  params.Args["lastname"].(string),
+				}
+				// add db logic here
+				err := db.CreateUser(user)
+				if err != nil {
+					return nil, err
+				}
+				return user, nil
 			},
 		},
 	},

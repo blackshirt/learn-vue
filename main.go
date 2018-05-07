@@ -13,7 +13,8 @@ import (
 func main() {
 	// define your root query as entry point
 	var schemaConfig = graphql.SchemaConfig{
-		Query: types.RootQuery,
+		Query:    types.RootQuery,
+		Mutation: types.MutationsType,
 	}
 	// define your schema
 	schema, err := graphql.NewSchema(schemaConfig)
