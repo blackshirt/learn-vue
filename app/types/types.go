@@ -1,7 +1,10 @@
 package types
 
 import (
+	"log"
+
 	"github.com/graphql-go/graphql"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // var db *sql.DB
@@ -12,10 +15,6 @@ type User struct {
 	Firstname string `json: "firstname"`
 	Lastname  string `json: "lastname"`
 }
-
-var db, _ = NewDB("sqlite3", "./test.db")
-
-var resolver = NewSQLHandler(db)
 
 var UserTypeObject = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "User",
@@ -78,8 +77,10 @@ var RootQuery = graphql.NewObject(graphql.ObjectConfig{
 			},
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 				id, _ := params.Args["id"].(int)
-				user, err := resolver.GetByID(id)
+				// db was database handler in db files in the same package
+				user, err := db.GetByID(id)
 				if err != nil {
+					log.Fatalf("Error in resolver getbyID", err)
 					return nil, err
 				}
 				return user, nil
@@ -91,8 +92,9 @@ var RootQuery = graphql.NewObject(graphql.ObjectConfig{
 			Type:        graphql.NewList(UserTypeObject),
 			Description: "List of user",
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				users, err := resolver.Users()
+				users, err := db.Users()
 				if err != nil {
+					log.Fatalf("resolver users error:", err)
 					return nil, err
 				}
 				return users, nil
