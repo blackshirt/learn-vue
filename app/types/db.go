@@ -79,11 +79,13 @@ func (sqh *SQLResolver) CreateUser(user *User) error {
 	query := `insert into user(username, firstname, lastname) values(?,?,?)`
 	stmt, err := sqh.DB.Prepare(query)
 	if err != nil {
-		log.Fatalf("error in stmt of create user:", err)
+		log.Fatalf("error in prepare of create user:", err)
+		return err
 	}
 	_, er := stmt.Exec(user.Username, user.Firstname, user.Lastname)
 	if er != nil {
-		log.Fatalf("Error in Exec:", err)
+		log.Fatalf("Error in Exec:", er)
+		return er
 	}
 	//id, err := result.LastInsertId()
 	//if err != nil {
@@ -91,4 +93,29 @@ func (sqh *SQLResolver) CreateUser(user *User) error {
 	//}
 
 	return nil
+}
+
+// Get roles from user
+func (sqh *SQLResolver) GetUserRoles(id int) ([]*Role, error) {
+	var roles []*Role
+	rows, err := sqh.DB.Query("select r.id, r.name, r.description from role user_role where user=?", id)
+	// check error
+	if err != nil {
+		log.Fatalf("error in select from user_role:", err.Error())
+	}
+	defer rows.Close()
+	for rows.Next() {
+		role := new(Role)
+		err := rows.Scan(&role.ID, &role.Name, &role.Description)
+		if err != nil {
+			log.Fatalf("Error in rows scans of users role:", err)
+		}
+		roles = append(roles, role)
+
+	}
+	// check error after Next() loop
+	if err = rows.Err(); err != nil {
+		rows.Close()
+	}
+	return roles, nil
 }

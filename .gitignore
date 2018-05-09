@@ -39,4 +39,4 @@ liteidex/src/golang.org/
 
 
 test.db
-app\types\test.db
+app/types/test.db

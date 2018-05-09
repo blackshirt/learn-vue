@@ -7,8 +7,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// var db *sql.DB
-
 type User struct {
 	ID        int    `json: "id"`
 	Username  string `json: "username"`
@@ -16,9 +14,15 @@ type User struct {
 	Lastname  string `json: "lastname"`
 }
 
-var UserTypeObject = graphql.NewObject(graphql.ObjectConfig{
+type Role struct {
+	ID          int    `json: "id"`
+	Name        string `json: "name"`
+	Description string `json: "description"`
+}
+
+var userObjectType = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "User",
-	Description: "Graphql type object for User model",
+	Description: "Graphql object type for User model",
 	Fields: graphql.Fields{
 		"id": &graphql.Field{
 			Type:        graphql.NewNonNull(graphql.Int),
@@ -61,6 +65,60 @@ var UserTypeObject = graphql.NewObject(graphql.ObjectConfig{
 				return nil, nil
 			},
 		},
+		"roles": &graphql.Field{
+			Type:        graphql.NewList(roleObjectType),
+			Description: "roles of the user",
+			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				var roles []Role
+				userID := params.Source.(*User).ID
+				rows, err := db.GetUserRoles(userID)
+				if err != nil {
+					log.Fatalf("Error get user roles", err)
+					return nil, err
+				}
+				for _, item := range rows {
+					roles = append(roles, item)
+				}
+				return roles, nil
+			},
+		},
+	},
+})
+
+var roleObjectType = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "Role",
+	Description: "Graphql role object type",
+	Fields: graphql.Fields{
+		"id": &graphql.Field{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Id of the Role",
+			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				if role, ok := params.Source.(*Role); ok {
+					return role.ID, nil
+				}
+				return nil, nil
+			},
+		},
+		"name": &graphql.Field{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "name field of the role",
+			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				if role, ok := params.Source.(*Role); ok {
+					return role.Name, nil
+				}
+				return nil, nil
+			},
+		},
+		"description": &graphql.Field{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "description field of the role",
+			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				if role, ok := params.Source.(*Role); ok {
+					return role.Description, nil
+				}
+				return nil, nil
+			},
+		},
 	},
 })
 
@@ -69,7 +127,7 @@ var RootQuery = graphql.NewObject(graphql.ObjectConfig{
 	Name: "RootQuery",
 	Fields: graphql.Fields{
 		"user": &graphql.Field{
-			Type:        UserTypeObject,
+			Type:        userObjectType,
 			Description: "Get an user",
 			Args: graphql.FieldConfigArgument{
 				"id": &graphql.ArgumentConfig{
@@ -90,7 +148,7 @@ var RootQuery = graphql.NewObject(graphql.ObjectConfig{
 
 		// multiple set
 		"users": &graphql.Field{
-			Type:        graphql.NewList(UserTypeObject),
+			Type:        graphql.NewList(userObjectType),
 			Description: "List of user",
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 				users, err := db.Users()
@@ -109,7 +167,7 @@ var MutationsType = graphql.NewObject(graphql.ObjectConfig{
 	Name: "RootMutations",
 	Fields: graphql.Fields{
 		"createUserMutation": &graphql.Field{
-			Type:        UserTypeObject,
+			Type:        userObjectType,
 			Description: "create user mutation",
 			Args: graphql.FieldConfigArgument{
 				"username": &graphql.ArgumentConfig{
