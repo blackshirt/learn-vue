@@ -69,16 +69,14 @@ var userObjectType = graphql.NewObject(graphql.ObjectConfig{
 			Type:        graphql.NewList(roleObjectType),
 			Description: "roles of the user",
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				var roles []Role
+				// var roles []Role
 				userID := params.Source.(*User).ID
-				rows, err := db.GetUserRoles(userID)
+				roles, err := db.GetUserRoles(userID)
 				if err != nil {
 					log.Fatalf("Error get user roles", err)
 					return nil, err
 				}
-				for _, item := range rows {
-					roles = append(roles, item)
-				}
+
 				return roles, nil
 			},
 		},

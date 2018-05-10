@@ -36,7 +36,3 @@ liteidex/src/golang.org/
 
 #macosx
 .DS_Store
-
-
-test.db
-app/types/test.db

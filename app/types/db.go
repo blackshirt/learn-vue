@@ -98,7 +98,9 @@ func (sqh *SQLResolver) CreateUser(user *User) error {
 // Get roles from user
 func (sqh *SQLResolver) GetUserRoles(id int) ([]*Role, error) {
 	var roles []*Role
-	rows, err := sqh.DB.Query("select r.id, r.name, r.description from role user_role where user=?", id)
+	// rows just select the required field to construct Role in rows.Scan
+	rows, err := sqh.DB.Query(`select r.id, r.name, r.description from 
+	user_role ur, role r where ur.user=? and ur.role = r.id`, id)
 	// check error
 	if err != nil {
 		log.Fatalf("error in select from user_role:", err.Error())
