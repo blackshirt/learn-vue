@@ -52,10 +52,10 @@ func (sqh *SQLResolver) GetByID(id int) (*User, error) {
 
 func (sqh *SQLResolver) Users() ([]*User, error) {
 	var users []*User
-	rows, err := sqh.DB.Query("select id, username, firstname, lastname from user")
+	rows, err := sqh.DB.Query("select id, username, firstname, lastname from users")
 	// check error
 	if err != nil {
-		log.Fatalf("error in select from user:", err.Error())
+		log.Fatalf("error in select from users:", err.Error())
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -76,7 +76,7 @@ func (sqh *SQLResolver) Users() ([]*User, error) {
 
 func (sqh *SQLResolver) CreateUser(user *User) error {
 	// var id int64
-	query := `insert into user(username, firstname, lastname) values(?,?,?)`
+	query := `insert into users(username, firstname, lastname) values(?,?,?)`
 	stmt, err := sqh.DB.Prepare(query)
 	if err != nil {
 		log.Fatalf("error in prepare of create user:", err)
@@ -100,7 +100,7 @@ func (sqh *SQLResolver) GetUserRoles(id int) ([]*Role, error) {
 	var roles []*Role
 	// rows just select the required field to construct Role in rows.Scan
 	rows, err := sqh.DB.Query(`select r.id, r.name, r.description from 
-	user_role ur, role r where ur.user=? and ur.role = r.id`, id)
+	user_role ur, roles r where ur.user_id=? and ur.role_id = r.id`, id)
 	// check error
 	if err != nil {
 		log.Fatalf("error in select from user_role:", err.Error())
