@@ -32,7 +32,7 @@ func (sqh *SQLResolver) GetByID(id int) (*User, error) {
 	user := &User{}
 	// query db and scan the result
 	// use the pointer address
-	err := sqh.DB.QueryRow("select id, username, firstname, lastname from user where id=?", id).Scan(
+	err := sqh.DB.QueryRow("select id, username, firstname, lastname from users where id=?", id).Scan(
 		&user.ID,
 		&user.Username,
 		&user.Firstname,

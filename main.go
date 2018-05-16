@@ -7,6 +7,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"
 
+	"./app/security"
 	"./app/types"
 )
 
@@ -30,6 +31,6 @@ func main() {
 	})
 
 	// adapts and serve standard http handler
-	http.Handle("/gqlhandler", gqlHandler)
+	http.Handle("/gqlhandler", security.Handle(gqlHandler))
 	http.ListenAndServe(":8000", nil)
 }
