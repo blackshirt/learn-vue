@@ -20,7 +20,7 @@ func main() {
 	// define your schema
 	schema, err := graphql.NewSchema(schemaConfig)
 	if err != nil {
-		log.Fatalf("Erro create schema, error: %v", err)
+		log.Fatalf("Error create schema, error: %v", err)
 	}
 
 	// define your graphql handler using graphql-go handler
@@ -31,6 +31,6 @@ func main() {
 	})
 
 	// adapts and serve standard http handler
-	http.Handle("/gqlhandler", security.Handle(gqlHandler))
+	http.Handle("/gqlhandler", gqlHandler)
 	http.ListenAndServe(":8000", nil)
 }
