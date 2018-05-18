@@ -78,12 +78,10 @@ CREATE TABLE `operations` (
 );
 
 BEGIN TRANSACTION;
-INSERT INTO `operations`(opid, name) VALUES(0,"preventing");
-INSERT INTO `operations`(opid, name) VALUES(1,"creating");
-INSERT INTO `operations`(opid, name) VALUES(2,"reading");
-INSERT INTO `operations`(opid, name) VALUES(3,"updating");
-INSERT INTO `operations`(opid, name) VALUES(4,"deleting");
-INSERT INTO `operations`(opid, name, locked) VALUES(5,"locking", 1);
+INSERT INTO `operations`(opid, name) VALUES(0,"create");
+INSERT INTO `operations`(opid, name) VALUES(1,"read");
+INSERT INTO `operations`(opid, name) VALUES(2,"update");
+INSERT INTO `operations`(opid, name) VALUES(3,"delete");
 COMMIT TRANSACTION;
 
 
@@ -104,18 +102,14 @@ CREATE TABLE `permissions` (
 );
 
 BEGIN TRANSACTION;
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(0,"noAccessUsers",0,0);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(1,"createUsers",1,0);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(2,"readUsers",2,0);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(3,"updateUsers",3,0);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(4,"deleteUsers",4,0);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(5,"noAccessRoles",0,1);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(6,"createRoles",1,1);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(7,"readRoles",2,1);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(8,"updateRoles",3,1);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(9,"deleteRoles",4,1);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(10,"lockUser",5,0);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(11,"lockRole",5,1);
+INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(0,"createUsers",0,0);
+INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(1,"readUsers",1,0);
+INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(2,"updateUsers",2,0);
+INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(3,"deleteUsers",3,0);
+INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(4,"createRoles",0,1);
+INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(5,"readRoles",1,1);
+INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(6,"updateRoles",2,1);
+INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(7,"deleteRoles",3,1);
 COMMIT TRANSACTION;
 
 
@@ -133,25 +127,21 @@ CREATE TABLE `role_perm`(
 );
 
 BEGIN TRANSACTION;
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(0,0); -- anonymouse -> noAccessRoles
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(0,5); -- anonymouse -> noAccessUsers
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,1); -- root -> createUsers
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,2); -- root -> readUsers
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,3); -- root -> updateUsers
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,4); -- root -> deleteUsers
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,5); -- root -> noAccessUsers
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,6); -- root -> createRoles
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,7); -- root -> readRoles
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,8); -- root -> updateRoles
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,9); -- root -> deleteRoles
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,10); -- root -> lockUser
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,11); -- root -> lockRole
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(2,2); -- admin -> readUsers
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(2,3); -- admin -> updateUsers
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(2,7); -- admin -> createRoles
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(2,8); -- admin -> updateRoles
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(3,2); -- regular -> readUsers
-INSERT INTO `role_perm`(role_id, perm_id) VALUES(3,7); -- regular -> readRoles
+INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,0); -- root -> createUsers
+INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,1); -- root -> readUsers
+INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,2); -- root -> updateUsers
+INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,3); -- root -> deleteUsers
+INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,4); -- root -> createRoles
+INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,5); -- root -> readRoles
+INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,6); -- root -> updateRoles
+INSERT INTO `role_perm`(role_id, perm_id) VALUES(1,7); -- root -> deleteRoles
+INSERT INTO `role_perm`(role_id, perm_id) VALUES(2,1); -- admin -> readUsers
+INSERT INTO `role_perm`(role_id, perm_id) VALUES(2,2); -- admin -> updateUsers
+INSERT INTO `role_perm`(role_id, perm_id) VALUES(2,3); -- admin -> createRoles
+INSERT INTO `role_perm`(role_id, perm_id) VALUES(2,4); -- admin -> readRoles
+INSERT INTO `role_perm`(role_id, perm_id) VALUES(2,5); -- admin -> updateRoles
+INSERT INTO `role_perm`(role_id, perm_id) VALUES(3,1); -- regular -> readUsers
+INSERT INTO `role_perm`(role_id, perm_id) VALUES(3,4); -- regular -> readRoles
 COMMIT TRANSACTION;
 
 
