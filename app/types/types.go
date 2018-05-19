@@ -5,31 +5,22 @@ import (
 
 	"github.com/graphql-go/graphql"
 	_ "github.com/mattn/go-sqlite3"
+
+	"../models"
 )
 
-type User struct {
-	ID        int    `json: "id"`
-	Username  string `json: "username"`
-	Firstname string `json: "firstname"`
-	Lastname  string `json: "lastname"`
-}
-
-type Role struct {
-	ID          int    `json: "id"`
-	Name        string `json: "name"`
-	Description string `json: "description"`
-}
+var db, _ = models.NewDB("./app/types/test.db")
 
 var userObjectType = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "User",
 	Description: "Graphql object type for User model",
 	Fields: graphql.Fields{
-		"id": &graphql.Field{
+		"uid": &graphql.Field{
 			Type:        graphql.NewNonNull(graphql.Int),
 			Description: "Id of the user",
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				if user, ok := params.Source.(*User); ok {
-					return user.ID, nil
+				if user, ok := params.Source.(*models.User); ok {
+					return user.Uid, nil
 				}
 				return nil, nil
 			},
@@ -38,7 +29,7 @@ var userObjectType = graphql.NewObject(graphql.ObjectConfig{
 			Type:        graphql.NewNonNull(graphql.String),
 			Description: "Username of User model",
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				if user, ok := params.Source.(*User); ok {
+				if user, ok := params.Source.(*models.User); ok {
 					return user.Username, nil
 				}
 				return nil, nil
@@ -49,8 +40,9 @@ var userObjectType = graphql.NewObject(graphql.ObjectConfig{
 			Type:        graphql.String,
 			Description: "Firstname",
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				if user, ok := params.Source.(*User); ok {
-					return user.Firstname, nil
+				if user, ok := params.Source.(*models.User); ok {
+					// Firstname was nullable string
+					return user.Firstname.String, nil
 				}
 				return nil, nil
 			},
@@ -59,8 +51,21 @@ var userObjectType = graphql.NewObject(graphql.ObjectConfig{
 			Type:        graphql.String,
 			Description: "Lastname",
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				if user, ok := params.Source.(*User); ok {
-					return user.Lastname, nil
+				if user, ok := params.Source.(*models.User); ok {
+					// lastname was nullable string
+					return user.Lastname.String, nil
+				}
+				return nil, nil
+			},
+		},
+		"passwd": &graphql.Field{
+			Type:        graphql.String,
+			Description: "Passwd",
+			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				if user, ok := params.Source.(*models.User); ok {
+					// remember, hashedPwd was Nullablestring type from models,
+					// pick up the String, even its NULL
+					return user.HashedPwd, nil
 				}
 				return nil, nil
 			},
@@ -70,7 +75,7 @@ var userObjectType = graphql.NewObject(graphql.ObjectConfig{
 			Description: "roles of the user",
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 				// var roles []Role
-				userID := params.Source.(*User).ID
+				userID := params.Source.(*models.User).Uid
 				roles, err := db.GetUserRoles(userID)
 				if err != nil {
 					log.Fatalf("Error get user roles", err)
@@ -91,8 +96,8 @@ var roleObjectType = graphql.NewObject(graphql.ObjectConfig{
 			Type:        graphql.NewNonNull(graphql.ID),
 			Description: "Id of the Role",
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				if role, ok := params.Source.(*Role); ok {
-					return role.ID, nil
+				if role, ok := params.Source.(*models.Role); ok {
+					return role.Rid, nil
 				}
 				return nil, nil
 			},
@@ -101,7 +106,7 @@ var roleObjectType = graphql.NewObject(graphql.ObjectConfig{
 			Type:        graphql.NewNonNull(graphql.String),
 			Description: "name field of the role",
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				if role, ok := params.Source.(*Role); ok {
+				if role, ok := params.Source.(*models.Role); ok {
 					return role.Name, nil
 				}
 				return nil, nil
@@ -111,7 +116,7 @@ var roleObjectType = graphql.NewObject(graphql.ObjectConfig{
 			Type:        graphql.NewNonNull(graphql.String),
 			Description: "description field of the role",
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				if role, ok := params.Source.(*Role); ok {
+				if role, ok := params.Source.(*models.Role); ok {
 					return role.Description, nil
 				}
 				return nil, nil
@@ -128,14 +133,14 @@ var RootQuery = graphql.NewObject(graphql.ObjectConfig{
 			Type:        userObjectType,
 			Description: "Get an user",
 			Args: graphql.FieldConfigArgument{
-				"id": &graphql.ArgumentConfig{
+				"uid": &graphql.ArgumentConfig{
 					Type: graphql.Int,
 				},
 			},
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				id, _ := params.Args["id"].(int)
+				uid, _ := params.Args["uid"].(int)
 				// db was database handler in db files in the same package
-				user, err := db.GetByID(id)
+				user, err := db.GetUserByID(uid)
 				if err != nil {
 					log.Fatalf("Error in resolver getbyID", err)
 					return nil, err
@@ -149,7 +154,7 @@ var RootQuery = graphql.NewObject(graphql.ObjectConfig{
 			Type:        graphql.NewList(userObjectType),
 			Description: "List of user",
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				users, err := db.Users()
+				users, err := db.AllUsers()
 				if err != nil {
 					log.Fatalf("resolver users error:", err)
 					return nil, err
@@ -180,10 +185,10 @@ var MutationsType = graphql.NewObject(graphql.ObjectConfig{
 				},
 			},
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				user := &User{
+				user := &models.User{
 					Username:  params.Args["username"].(string),
-					Firstname: params.Args["firstname"].(string),
-					Lastname:  params.Args["lastname"].(string),
+					Firstname: params.Args["firstname"].(models.NullableString),
+					Lastname:  params.Args["lastname"].(models.NullableString),
 				}
 				// add db logic here
 				err := db.CreateUser(user)

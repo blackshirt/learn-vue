@@ -7,7 +7,6 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"
 
-	"./app/security"
 	"./app/types"
 )
 

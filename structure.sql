@@ -9,7 +9,7 @@ CREATE TABLE `users` (
 	`username` VARCHAR(50) NOT NULL UNIQUE,
 	`firstname` VARCHAR(50),
 	`lastname` VARCHAR(50),
-	`hashedPwd` VARCHAR(200)	
+	`hashedPwd` VARCHAR(200) NOT NULL DEFAUL NULL	
 );
 
 /* ------------------------------------------------------------------------- */
