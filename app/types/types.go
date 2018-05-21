@@ -1,6 +1,8 @@
 package types
 
 import (
+	"database/sql"
+	"errors"
 	"log"
 
 	"github.com/graphql-go/graphql"
@@ -9,7 +11,10 @@ import (
 	"../models"
 )
 
-var db, _ = models.NewDB("./app/types/test.db")
+// var db, _ = models.NewDB("./app/types/test.db")
+var params = graphql.ResolveParams{}
+var repo = params.Context.Value("repo")
+var db = repo.db
 
 var userObjectType = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "User",
@@ -132,6 +137,10 @@ var RootQuery = graphql.NewObject(graphql.ObjectConfig{
 			Type:        graphql.NewList(userObjectType),
 			Description: "List of user",
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				db, ok := params.Context().Value("db").(*sql.DB)
+				if !ok {
+					return nil, errors.New("could not get database connection pool from context")
+				}
 				users, err := db.AllUsers()
 				if err != nil {
 					log.Fatalf("resolver users error:", err)

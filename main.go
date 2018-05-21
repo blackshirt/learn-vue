@@ -1,16 +1,33 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"
 
+	"./app/models"
 	"./app/types"
 )
 
+type ContextInjector struct {
+	ctx context.Context
+	h   http.Handler
+}
+
+func (ci *ContextInjector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ci.h.ServeHTTP(w, r.WithContext(ci.ctx))
+}
+
 func main() {
+	repo, err := models.NewDB("./app/types/test.db")
+	if err != nil {
+		log.Panic(err)
+	}
+	ctx := context.WithValue(context.Background(), "repo", repo)
+
 	// define your root query as entry point
 	var schemaConfig = graphql.SchemaConfig{
 		Query:    types.RootQuery,
@@ -30,6 +47,6 @@ func main() {
 	})
 
 	// adapts and serve standard http handler
-	http.Handle("/gqlhandler", gqlHandler)
+	http.Handle("/gqlhandler", &ContextInjector{ctx, http.HandlerFunc(gqlHandler)})
 	http.ListenAndServe(":8000", nil)
 }

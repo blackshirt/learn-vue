@@ -7,15 +7,15 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type Datastore interface {
+type Store interface {
 	AllUsers() (interface{}, error)
 }
 
-type SQLResolver struct {
-	DB *sql.DB
+type Repo struct {
+	db *sql.DB
 }
 
-func NewDB(dataSourceName string) (*SQLResolver, error) {
+func NewDB(dataSourceName string) (*Repo, error) {
 	db, err := sql.Open("sqlite3", dataSourceName)
 	if err != nil {
 		log.Fatalf("DB open error", err.Error())
@@ -25,5 +25,5 @@ func NewDB(dataSourceName string) (*SQLResolver, error) {
 		log.Fatalf("Ping error", err.Error())
 		return nil, err
 	}
-	return &SQLResolver{db}, nil
+	return &Repo{db}, nil
 }

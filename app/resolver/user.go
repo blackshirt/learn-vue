@@ -1,9 +1,21 @@
 package resolver
 
 import (
-	"./app/models"
+	"log"
+
+	"../models"
+	"github.com/graphql-go/graphql"
 )
 
-type Env struct {
-	db models.Datastore
+type Resolver struct {
+	store models.Store
+}
+
+func (env *Resolver) AllUsers(params graphql.ResolveParams) (interface{}, error) {
+	users, err := env.Store.AllUsers()
+	if err != nil {
+		log.Fatalf("resolver users error:", err)
+		return nil, err
+	}
+	return users, nil
 }

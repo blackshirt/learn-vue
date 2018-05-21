@@ -54,11 +54,11 @@ type User struct {
 	HashedPwd string `json: "hashedPwd"`
 }
 
-func (sqr *SQLResolver) GetUserByID(uid int) (*User, error) {
+func (repo Repo) GetUserByID(uid int) (*User, error) {
 	user := &User{}
 	// query db and scan the result
 	// use the pointer address
-	err := sqr.DB.QueryRow("select uid, username, hashedPwd from users where uid=?", uid).Scan(
+	err := repo.db.QueryRow("select uid, username, hashedPwd from users where uid=?", uid).Scan(
 		&user.Uid,
 		&user.Username,
 		&user.HashedPwd,
@@ -76,8 +76,8 @@ func (sqr *SQLResolver) GetUserByID(uid int) (*User, error) {
 	return user, nil
 }
 
-func (sqr *SQLResolver) AllUsers() ([]*User, error) {
-	rows, err := sqr.DB.Query("select uid, username, hashedPwd from users")
+func (repo Repo) AllUsers() ([]*User, error) {
+	rows, err := repo.db.Query("select uid, username, hashedPwd from users")
 	if err != nil {
 		log.Fatalf("error in select from users:", err.Error())
 	}
@@ -99,7 +99,7 @@ func (sqr *SQLResolver) AllUsers() ([]*User, error) {
 	return users, nil
 }
 
-func (sqh *SQLResolver) CreateUser(user *User) error {
+func (repo Repo) CreateUser(user *User) error {
 
 	// store using bcrypt package
 	hashedpwd, err := bcrypt.GenerateFromPassword([]byte(user.HashedPwd), bcrypt.DefaultCost)
@@ -111,7 +111,7 @@ func (sqh *SQLResolver) CreateUser(user *User) error {
 	user.HashedPwd = string(hashedpwd)
 	// prepare query
 	query := `insert into users(username,hashedPwd) values(?,?)`
-	stmt, err := sqh.DB.Prepare(query)
+	stmt, err := repo.db.Prepare(query)
 	if err != nil {
 		log.Fatalf("error in prepare of create user:", err)
 		return err
@@ -130,11 +130,11 @@ func (sqh *SQLResolver) CreateUser(user *User) error {
 	return nil
 }
 
-// Get roles from user
-func (sqh *SQLResolver) GetUserRoles(id int) ([]*Role, error) {
+// Get roles from user with id
+func (repo Repo) GetUserRoles(id int) ([]*Role, error) {
 	var roles []*Role
 	// rows just select the required field to construct Role in rows.Scan
-	rows, err := sqh.DB.Query(`select r.rid, r.name, r.description from roles r 
+	rows, err := repo.db.Query(`select r.rid, r.name, r.description from roles r 
 			join user_role ur on ur.role_id = r.rid where ur.user_id=?`, id)
 	// check error
 	if err != nil {
