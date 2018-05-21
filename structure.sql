@@ -7,22 +7,20 @@ PRAGMA foreign_keys=ON;
 CREATE TABLE `users` (
 	`uid` INTEGER PRIMARY KEY,
 	`username` VARCHAR(50) NOT NULL UNIQUE,
-	`firstname` VARCHAR(50),
-	`lastname` VARCHAR(50),
-	`hashedPwd` VARCHAR(200) NOT NULL DEFAUL NULL	
+	`hashedPwd` VARCHAR(200) NOT NULL	
 );
 
 /* ------------------------------------------------------------------------- */
 /* ---------------  insert users sample ----------------------------------- */
 /* ------------------------------------------------------------------------- */
 BEGIN TRANSACTION;
-INSERT INTO `users`(uid,username,firstname,lastname) VALUES(0,"guest","guest","guest");
-INSERT INTO `users`(uid,username,firstname,lastname) VALUES(1,"blackshirt","black","shirt");
-INSERT INTO `users`(uid,username,firstname,lastname) VALUES(2,"greenshirt","green","shirt");
-INSERT INTO `users`(uid,username,firstname,lastname) VALUES(3,"redshirt","red","shirt");
-INSERT INTO `users`(uid,username,firstname,lastname) VALUES(4,"pinkshirt","pink","shirt");
-INSERT INTO `users`(uid,username,firstname,lastname) VALUES(5,"blueshirt","blue","shirt");
-INSERT INTO `users`(uid,username,firstname,lastname) VALUES(6,"brownshirt","brown","shirt");
+INSERT INTO `users`(uid,username,hashedPwd) VALUES(0,"guest","0");
+INSERT INTO `users`(uid,username,hashedPwd) VALUES(1,"blackshirt","1");
+INSERT INTO `users`(uid,username,hashedPwd) VALUES(2,"greenshirt","2");
+INSERT INTO `users`(uid,username,hashedPwd) VALUES(3,"redshirt","3");
+INSERT INTO `users`(uid,username,hashedPwd) VALUES(4,"pinkshirt","4");
+INSERT INTO `users`(uid,username,hashedPwd) VALUES(5,"blueshirt","5");
+INSERT INTO `users`(uid,username,hashedPwd) VALUES(6,"brownshirt","6");
 COMMIT TRANSACTION;
 
 

@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"log"
 	"reflect"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type NullableString sql.NullString
@@ -47,22 +49,18 @@ func (ns *NullableString) UnmarshalJSON(b []byte) error {
 }
 
 type User struct {
-	Uid       int            `json: "uid"`
-	Username  string         `json: "username"`
-	Firstname NullableString `json: "firstname"`
-	Lastname  NullableString `json: "lastname"`
-	HashedPwd NullableString `json: "hashedPwd"`
+	Uid       int    `json: "uid"`
+	Username  string `json: "username"`
+	HashedPwd string `json: "hashedPwd"`
 }
 
 func (sqr *SQLResolver) GetUserByID(uid int) (*User, error) {
 	user := &User{}
 	// query db and scan the result
 	// use the pointer address
-	err := sqr.DB.QueryRow("select uid, username, firstname, lastname, hashedPwd from users where uid=?", uid).Scan(
+	err := sqr.DB.QueryRow("select uid, username, hashedPwd from users where uid=?", uid).Scan(
 		&user.Uid,
 		&user.Username,
-		&user.Firstname,
-		&user.Lastname,
 		&user.HashedPwd,
 	)
 	// check error
@@ -79,7 +77,7 @@ func (sqr *SQLResolver) GetUserByID(uid int) (*User, error) {
 }
 
 func (sqr *SQLResolver) AllUsers() ([]*User, error) {
-	rows, err := sqr.DB.Query("select uid, username, firstname, lastname, hashedPwd from users")
+	rows, err := sqr.DB.Query("select uid, username, hashedPwd from users")
 	if err != nil {
 		log.Fatalf("error in select from users:", err.Error())
 	}
@@ -87,7 +85,7 @@ func (sqr *SQLResolver) AllUsers() ([]*User, error) {
 	var users []*User
 	for rows.Next() {
 		user := new(User)
-		err := rows.Scan(&user.Uid, &user.Username, &user.Firstname, &user.Lastname, &user.HashedPwd)
+		err := rows.Scan(&user.Uid, &user.Username, &user.HashedPwd)
 		if err != nil {
 			log.Fatalf("Error in rows scans of users:", err.Error())
 		}
@@ -99,6 +97,64 @@ func (sqr *SQLResolver) AllUsers() ([]*User, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+func (sqh *SQLResolver) CreateUser(user *User) error {
+
+	// store using bcrypt package
+	hashedpwd, err := bcrypt.GenerateFromPassword([]byte(user.HashedPwd), bcrypt.DefaultCost)
+	if err != nil {
+		log.Fatalf("Error hashing")
+		return err
+	}
+	// string
+	user.HashedPwd = string(hashedpwd)
+	// prepare query
+	query := `insert into users(username,hashedPwd) values(?,?)`
+	stmt, err := sqh.DB.Prepare(query)
+	if err != nil {
+		log.Fatalf("error in prepare of create user:", err)
+		return err
+	}
+
+	_, er := stmt.Exec(user.Username, user.HashedPwd)
+	if er != nil {
+		log.Fatalf("Error in Exec:", er)
+		return er
+	}
+	//id, err := result.LastInsertId()
+	//if err != nil {
+	//	log.Fatalf("Error in result.LastinsertId")
+	//}
+
+	return nil
+}
+
+// Get roles from user
+func (sqh *SQLResolver) GetUserRoles(id int) ([]*Role, error) {
+	var roles []*Role
+	// rows just select the required field to construct Role in rows.Scan
+	rows, err := sqh.DB.Query(`select r.rid, r.name, r.description from roles r 
+			join user_role ur on ur.role_id = r.rid where ur.user_id=?`, id)
+	// check error
+	if err != nil {
+		log.Fatalf("error in select from user_role:", err.Error())
+	}
+	defer rows.Close()
+	for rows.Next() {
+		role := new(Role)
+		err := rows.Scan(&role.Rid, &role.Name, &role.Description)
+		if err != nil {
+			log.Fatalf("Error in rows scans of users role:", err)
+		}
+		roles = append(roles, role)
+
+	}
+	// check error after Next() loop
+	if err = rows.Err(); err != nil {
+		rows.Close()
+	}
+	return roles, nil
 }
 
 type Role struct {

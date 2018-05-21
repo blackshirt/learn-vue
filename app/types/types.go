@@ -36,28 +36,6 @@ var userObjectType = graphql.NewObject(graphql.ObjectConfig{
 
 			},
 		},
-		"firstname": &graphql.Field{
-			Type:        graphql.String,
-			Description: "Firstname",
-			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				if user, ok := params.Source.(*models.User); ok {
-					// Firstname was nullable string
-					return user.Firstname.String, nil
-				}
-				return nil, nil
-			},
-		},
-		"lastname": &graphql.Field{
-			Type:        graphql.String,
-			Description: "Lastname",
-			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				if user, ok := params.Source.(*models.User); ok {
-					// lastname was nullable string
-					return user.Lastname.String, nil
-				}
-				return nil, nil
-			},
-		},
 		"passwd": &graphql.Field{
 			Type:        graphql.String,
 			Description: "Passwd",
@@ -92,7 +70,7 @@ var roleObjectType = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "Role",
 	Description: "Graphql role object type",
 	Fields: graphql.Fields{
-		"id": &graphql.Field{
+		"rid": &graphql.Field{
 			Type:        graphql.NewNonNull(graphql.ID),
 			Description: "Id of the Role",
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
@@ -177,18 +155,15 @@ var MutationsType = graphql.NewObject(graphql.ObjectConfig{
 					Type:        graphql.NewNonNull(graphql.String),
 					Description: "username input to create user mutation",
 				},
-				"firstname": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphql.String),
-				},
-				"lastname": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphql.String),
+				"passwd": &graphql.ArgumentConfig{
+					Type:        graphql.NewNonNull(graphql.String),
+					Description: "password input to create user mutation",
 				},
 			},
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 				user := &models.User{
 					Username:  params.Args["username"].(string),
-					Firstname: params.Args["firstname"].(models.NullableString),
-					Lastname:  params.Args["lastname"].(models.NullableString),
+					HashedPwd: params.Args["passwd"].(string),
 				}
 				// add db logic here
 				err := db.CreateUser(user)
