@@ -1,8 +1,6 @@
 package types
 
 import (
-	"database/sql"
-	"errors"
 	"log"
 
 	"github.com/graphql-go/graphql"
@@ -11,11 +9,7 @@ import (
 	"../models"
 )
 
-// var db, _ = models.NewDB("./app/types/test.db")
-var params = graphql.ResolveParams{}
-var repo = params.Context.Value("repo")
-var db = repo.db
-
+// User object  type
 var userObjectType = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "User",
 	Description: "Graphql object type for User model",
@@ -57,20 +51,21 @@ var userObjectType = graphql.NewObject(graphql.ObjectConfig{
 			Type:        graphql.NewList(roleObjectType),
 			Description: "roles of the user",
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				// var roles []Role
 				userID := params.Source.(*models.User).Uid
+				// database context
+				db := params.Context.Value("db").(*models.Repo)
 				roles, err := db.GetUserRoles(userID)
 				if err != nil {
 					log.Fatalf("Error get user roles", err)
 					return nil, err
 				}
-
 				return roles, nil
 			},
 		},
 	},
 })
 
+// Role object type
 var roleObjectType = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "Role",
 	Description: "Graphql role object type",
@@ -122,7 +117,8 @@ var RootQuery = graphql.NewObject(graphql.ObjectConfig{
 			},
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 				uid, _ := params.Args["uid"].(int)
-				// db was database handler in db files in the same package
+				ctx := params.Context
+				db := ctx.Value("db").(*models.Repo)
 				user, err := db.GetUserByID(uid)
 				if err != nil {
 					log.Fatalf("Error in resolver getbyID", err)
@@ -136,11 +132,10 @@ var RootQuery = graphql.NewObject(graphql.ObjectConfig{
 		"users": &graphql.Field{
 			Type:        graphql.NewList(userObjectType),
 			Description: "List of user",
+
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				db, ok := params.Context().Value("db").(*sql.DB)
-				if !ok {
-					return nil, errors.New("could not get database connection pool from context")
-				}
+				// get database handle from context
+				db := params.Context.Value("db").(*models.Repo)
 				users, err := db.AllUsers()
 				if err != nil {
 					log.Fatalf("resolver users error:", err)
@@ -174,6 +169,8 @@ var MutationsType = graphql.NewObject(graphql.ObjectConfig{
 					Username:  params.Args["username"].(string),
 					HashedPwd: params.Args["passwd"].(string),
 				}
+				// get database context
+				db := params.Context.Value("db").(*models.Repo)
 				// add db logic here
 				err := db.CreateUser(user)
 				if err != nil {
