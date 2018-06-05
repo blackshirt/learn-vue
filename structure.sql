@@ -48,20 +48,20 @@ COMMIT TRANSACTION;
 
 
 /* ------------------------------------------------------------------------- */
-/* ---------------  objects table ------------------------------------------ */
+/* ---------------  resources table ------------------------------------------ */
 /* ------------------------------------------------------------------------- */
-CREATE TABLE `objects` (
-	`obid` INTEGER NOT NULL PRIMARY KEY,
+CREATE TABLE `resources` (
+	`resid` INTEGER NOT NULL PRIMARY KEY,
 	`name` VARCHAR(100) NOT NULL UNIQUE,
 	`locked` INTEGER NOT NULL DEFAULT 0
 );
 
 /* ------------------------------------------------------------------------- */
-/* ---------------  insert object sample ----------------------------------- */
+/* ---------------  insert resources sample ----------------------------------- */
 /* ------------------------------------------------------------------------- */
 BEGIN TRANSACTION;
-INSERT INTO `objects`(obid,name) VALUES(0,"Users");
-INSERT INTO `objects`(obid,name) VALUES(1,"Roles");
+INSERT INTO `resources`(resid,name) VALUES(0,"Users");
+INSERT INTO `resources`(resid,name) VALUES(1,"Roles");
 COMMIT TRANSACTION;
 
 
@@ -69,17 +69,17 @@ COMMIT TRANSACTION;
 /* ------------------------------------------------------------------------- */
 /* ---------------  operations table --------------------------------------- */
 /* ------------------------------------------------------------------------- */
-CREATE TABLE `operations` (
+CREATE TABLE `permissions` (
 	`opid` INTEGER NOT NULL PRIMARY KEY,
 	`name` VARCHAR(100) NOT NULL,
 	`locked` INTEGER NOT NULL DEFAULT 0
 );
 
 BEGIN TRANSACTION;
-INSERT INTO `operations`(opid, name) VALUES(0,"create");
-INSERT INTO `operations`(opid, name) VALUES(1,"read");
-INSERT INTO `operations`(opid, name) VALUES(2,"update");
-INSERT INTO `operations`(opid, name) VALUES(3,"delete");
+INSERT INTO `permissions`(opid, name) VALUES(0,"create");
+INSERT INTO `permissions`(opid, name) VALUES(1,"read");
+INSERT INTO `permissions`(opid, name) VALUES(2,"update");
+INSERT INTO `permissions`(opid, name) VALUES(3,"delete");
 COMMIT TRANSACTION;
 
 
@@ -87,33 +87,33 @@ COMMIT TRANSACTION;
 /* ------------------------------------------------------------------------- */
 /* ---------------  permissions table -------------------------------------- */
 /* ------------------------------------------------------------------------- */
-CREATE TABLE `permissions` (
+CREATE TABLE `perm_resource` (
     `pid` INTEGER NOT NULL UNIQUE, -- to prevent foreign key mismatch when referenced
 	`name` VARCHAR(100) NOT NULL,
 	`description` VARCHAR(100),
-	`operation_id` INTEGER NOT NULL,
-    `object_id` INTEGER NOT NULL,
+	`perm_id` INTEGER NOT NULL,
+    `resource_id` INTEGER NOT NULL,
     
-	PRIMARY KEY(`pid`, `operation_id`, `object_id`),
-	FOREIGN KEY(`object_id`) REFERENCES `objects`(`obid`),
-	FOREIGN KEY(`operation_id`) REFERENCES `operations`(`opid`)
+	PRIMARY KEY(`pid`, `perm_id`, `resource_id`),
+	FOREIGN KEY(`resource_id`) REFERENCES `resources`(`resid`),
+	FOREIGN KEY(`perm_id`) REFERENCES `permissions`(`opid`)
 );
 
 BEGIN TRANSACTION;
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(0,"createUsers",0,0);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(1,"readUsers",1,0);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(2,"updateUsers",2,0);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(3,"deleteUsers",3,0);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(4,"createRoles",0,1);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(5,"readRoles",1,1);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(6,"updateRoles",2,1);
-INSERT INTO `permissions`(pid,name,operation_id,object_id) VALUES(7,"deleteRoles",3,1);
+INSERT INTO `perm_resource`(pid,name,perm_id,resource_id) VALUES(0,"createUsers",0,0);
+INSERT INTO `perm_resource`(pid,name,perm_id,resource_id) VALUES(1,"readUsers",1,0);
+INSERT INTO `perm_resource`(pid,name,perm_id,resource_id) VALUES(2,"updateUsers",2,0);
+INSERT INTO `perm_resource`(pid,name,perm_id,resource_id) VALUES(3,"deleteUsers",3,0);
+INSERT INTO `perm_resource`(pid,name,perm_id,resource_id) VALUES(4,"createRoles",0,1);
+INSERT INTO `perm_resource`(pid,name,perm_id,resource_id) VALUES(5,"readRoles",1,1);
+INSERT INTO `perm_resource`(pid,name,perm_id,resource_id) VALUES(6,"updateRoles",2,1);
+INSERT INTO `perm_resource`(pid,name,perm_id,resource_id) VALUES(7,"deleteRoles",3,1);
 COMMIT TRANSACTION;
 
 
 
 /* ------------------------------------------------------------------------- */
-/* ---------------  role permissions table --------------------------------- */
+/* ---------------  role perm_resource table --------------------------------- */
 /* ------------------------------------------------------------------------- */
 CREATE TABLE `role_perm`(
 	`role_id` INTEGER NOT NULL,
@@ -121,7 +121,7 @@ CREATE TABLE `role_perm`(
 	
 	PRIMARY KEY(`role_id`, `perm_id`),
 	FOREIGN KEY(`role_id`) REFERENCES `roles`(rid),
-	FOREIGN KEY(`perm_id`) REFERENCES `permissions`(pid)
+	FOREIGN KEY(`perm_id`) REFERENCES `perm_resource`(pid)
 );
 
 BEGIN TRANSACTION;

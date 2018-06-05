@@ -163,10 +163,10 @@ type Role struct {
 	Description string `json: "description"`
 }
 
-type Roles []Role
+type Roles map[string]Role
 
-type Object struct {
-	Obid   int    `json: "obid"`
+type Resource struct {
+	Resid  int    `json: "resid"`
 	Name   string `json:"name"`
 	Locked bool   `json:"locked"`
 }
