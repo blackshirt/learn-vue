@@ -1,4 +1,14 @@
+/*
+Map resource to permission
+*/
 package security
+
+import "errors"
+
+var (
+	ErrPermissionNotExist = errors.New("Permission does not exist")
+	ErrPermissionExist    = errors.New("Permission has already existed")
+)
 
 type Permission interface {
 	Name() string
@@ -8,8 +18,7 @@ type Permission interface {
 type Permissions map[string]Permission
 
 type StdPermission struct {
-	Name      string
-	resources Resources
+	Id string
 }
 
 func NewStdPermission(name string) Permission {
@@ -17,9 +26,9 @@ func NewStdPermission(name string) Permission {
 }
 
 func (sp *StdPermission) Name() string {
-	return sp.Name
+	return sp.Id
 }
 
 func (sp *StdPermission) Match(op Permission) bool {
-	return sp.Name == op.Name()
+	return sp.Id == op.Name()
 }

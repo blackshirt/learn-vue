@@ -1,30 +1,40 @@
 package security
 
-import "sync"
+import (
+	"errors"
+	"sync"
+)
+
+var (
+	ErrRoleNotExist = errors.New("Role does not exist")
+	ErrRoleExist    = errors.New("Role has already existed")
+)
 
 type Role interface {
 	Name() string
 	Permit(Permission) bool
+	Assign(Permission) error
+	Revoke(Permission) error
 }
 
 type Roles map[string]Role
 
 type StdRole struct {
 	sync.RWMutex
-	Name        string
+	Id          string
 	permissions Permissions
 }
 
 func NewStdRole(name string) *StdRole {
 	role := &StdRole{
-		name:        name,
+		Id:          name,
 		permissions: make(Permissions),
 	}
 	return role
 }
 
 func (sr *StdRole) Name() string {
-	return sr.Name
+	return sr.Id
 }
 
 func (sr *StdRole) Permit(p Permission) (result bool) {
@@ -35,7 +45,7 @@ func (sr *StdRole) Permit(p Permission) (result bool) {
 			break
 		}
 	}
-	sr.Unlock()
+	defer sr.RUnlock()
 	return
 }
 
@@ -60,6 +70,6 @@ func (sr *StdRole) Permissions() []Permission {
 	for _, p := range sr.permissions {
 		result = append(result, p)
 	}
-	sr.RUnlock()
+	defer sr.RUnlock()
 	return result
 }

@@ -70,16 +70,16 @@ COMMIT TRANSACTION;
 /* ---------------  operations table --------------------------------------- */
 /* ------------------------------------------------------------------------- */
 CREATE TABLE `permissions` (
-	`opid` INTEGER NOT NULL PRIMARY KEY,
+	`permid` INTEGER NOT NULL PRIMARY KEY,
 	`name` VARCHAR(100) NOT NULL,
 	`locked` INTEGER NOT NULL DEFAULT 0
 );
 
 BEGIN TRANSACTION;
-INSERT INTO `permissions`(opid, name) VALUES(0,"create");
-INSERT INTO `permissions`(opid, name) VALUES(1,"read");
-INSERT INTO `permissions`(opid, name) VALUES(2,"update");
-INSERT INTO `permissions`(opid, name) VALUES(3,"delete");
+INSERT INTO `permissions`(permid, name) VALUES(0,"create");
+INSERT INTO `permissions`(permid, name) VALUES(1,"read");
+INSERT INTO `permissions`(permid, name) VALUES(2,"update");
+INSERT INTO `permissions`(permid, name) VALUES(3,"delete");
 COMMIT TRANSACTION;
 
 
@@ -96,7 +96,7 @@ CREATE TABLE `perm_resource` (
     
 	PRIMARY KEY(`pid`, `perm_id`, `resource_id`),
 	FOREIGN KEY(`resource_id`) REFERENCES `resources`(`resid`),
-	FOREIGN KEY(`perm_id`) REFERENCES `permissions`(`opid`)
+	FOREIGN KEY(`perm_id`) REFERENCES `permissions`(`permid`)
 );
 
 BEGIN TRANSACTION;

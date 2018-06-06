@@ -1,67 +1,86 @@
 package security
 
 import (
-	"errors"
 	"sync"
 )
 
-var (
-	ErrRoleNotExist = errors.New("Role does not exist")
-	// ErrRoleExist occurred if a role shouldn't be found
-	ErrRoleExist = errors.New("Role has already existed")
-)
-
 type Rbac struct {
-	mutex     sync.Mutex
-	roles     Roles
-	resources Resources
+	mutex sync.Mutex
+	roles Roles
 }
 
 func New() *Rbac {
 	return &Rbac{
-		roles:     make(Roles),
-		resources: make(Resources),
+		roles: make(Roles),
 	}
 }
 
-// Add role to the structure
+// cek eksistensi role di rbac
+func (rbac *Rbac) roleExist(role Role) bool {
+	if _, ok := rbac.roles[role.Name()]; ok {
+		return true
+	}
+	return false
+}
+
+// Add role
 func (rbac *Rbac) AddRole(role Role) (err error) {
 	rbac.mutex.Lock()
-	if _, ok := rbac.roles[role.Name()]; !ok {
+	defer rbac.mutex.Unlock()
+	// tak ada role di roles
+	if !rbac.roleExist(role) {
 		rbac.roles[role.Name()] = role
 	} else {
 		err = ErrRoleExist
 	}
-	rbac.mutex.Unlock()
 	return
 }
 
+// remove role from rbac
 func (rbac *Rbac) RemoveRole(role Role) (err error) {
 	rbac.mutex.Lock()
 	defer rbac.mutex.Unlock()
-	if _, ok := rbac.roles[role.Name()]; ok {
-		delete(rbac.roles, role)
+	// role ada di roles
+	if rbac.roleExist(role) {
+		delete(rbac.roles, role.Name())
 	} else {
 		err = ErrRoleNotExist
 	}
 	return
 }
 
-func (rbac *Rbac) Grant(role Role, res Resource, perm Permission) (err error) {
-	// Grant a permission over resource to the specified role.
+// Grant a permission to the specified role.
+func (rbac *Rbac) Grant(role Role, perm Permission) (err error) {
 	rbac.mutex.Lock()
 	defer rbac.mutex.Unlock()
-	// cek jika role ada didaftar
-	if _, ok := rbac.roles[role.Name()]; ok {
-
+	if rbac.roleExist(role) {
+		if err := role.Assign(perm); err != nil {
+			return err
+		}
 	}
 	return
 }
 
-func (rbac *Rbac) Revoke(role Role, res Resource, perm Permission) (err error) {
-	// Revoke a permission over a resource from the specified role
+// Revoke a permission from the specified role
+func (rbac *Rbac) Revoke(role Role, perm Permission) (err error) {
+	rbac.mutex.Lock()
+	defer rbac.mutex.Unlock()
+	if rbac.roleExist(role) {
+		if err := role.Revoke(perm); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func (rbac *Rbac) Check(role Role, res Resource, perm Permission) bool {
-	// Test whether the given role has access to the resource with the specified permission
+// Test whether the given role has access with the specified permission
+func (rbac *Rbac) Check(role Role, perm Permission) bool {
+	rbac.mutex.Lock()
+	defer rbac.mutex.Unlock()
+	if rbac.roleExist(role) {
+		if role.Permit(perm) {
+			return true
+		}
+	}
+	return false
 }
